@@ -19,10 +19,10 @@ def animate(func):
 
         # Save frames as a GIF in memory
         gif_buf = BytesIO()
-        imageio.mimsave(gif_buf, frames, 'GIF', duration=1 / len(frames), loop=0)
+        imageio.mimsave(gif_buf, frames, 'GIF', loop=0)
         gif_buf.seek(0)
 
         # Display the GIF
-        return Image(data=gif_buf.read(), format='png')
+        return Image(data=gif_buf.read(), format='gif')
     
     return wrapper
