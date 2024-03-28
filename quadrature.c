@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+#include  <math.h>
 
-#define TOL pow(10, -8)
+#define TOL 1e-8
 
 // Gauss-Lobatto Quadrature weights
 double** W;
@@ -38,9 +38,9 @@ void legendre_deriv_poly_eval(double* coef, double** C, double x, int N, double*
         sum += vand[i] * coef[i];
         feval += vand[i] * C[N][i];
     }
-    sum += pow(x, N+1) * coef[N + 1];
+    sum += vand[N] * x * coef[N + 1];
 
-    sum = N* sum / (pow(x, 2) - 1);
+    sum = N* sum / (vand[2] - 1);
     f[0] = feval;
     f[1] = sum;
 }
