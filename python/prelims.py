@@ -67,7 +67,7 @@ def normal(m):
 
 
 class DGPrelims:
-    def __init__(self, n, m, interval=(-1, 1)):
+    def __init__(self, n, m, interval=(-1, 1), is_periodic=False):
         self.n = n
         self.m = m
         self.x, self.w, self.P = gausslob(n)
@@ -79,54 +79,59 @@ class DGPrelims:
         self.normal = normal(m)
         self.h = (interval[1] - interval[0]) / m
 
+        self.is_periodic = is_periodic
+
     def RHS(self, f, u):
         # Compute the right hand side of the DG equation, given f and u
         
         uM = u[[0, self.n - 1], :]
-        uP = np.concatenate((np.array([uM[0, 0]]), uM[1, :-1]))
-        uP = np.vstack((uP, np.concatenate((uM[0, 1:], [uM[1, -1]]))))
+        if self.is_periodic:
+            uP = np.vstack((np.roll(uM[1, :], 1), np.roll(uM[0, :], -1)))
+        else:
+            uP = np.concatenate((np.array([uM[0, 0]]), uM[1, :-1]))
+            uP = np.vstack((uP, np.concatenate((uM[0, 1:], [uM[1, -1]]))))
 
         f_avg = 0.5 * (f(uM) + f(uP))
 
         ret = (-2 / self.h) * (self.D @ f(u) + np.diag(1 / self.w) @ self.L @ ((f_avg - f(uM)) * self.normal - 0.5 * (uP - uM)))
         
         return ret
+    
+    def integrate(self, U):
+        # Compute the estimated integral of U over the domain, using the Gauss Lobatto quadrature
+        integral = 0
+        for m in range(0, self.m):
+            integral += np.sum(self.w * U[:,m])
 
+        return integral * self.h / 2 # FIXME why 1 / 2?
 
 # Testing stuff
 if __name__ == "__main__":
-    n = 4
-    dg = DGPrelims(n, 64)
+    from time import time
+
+    start = time()
+    dg = DGPrelims(4, 16384, is_periodic=True)
+
+    print("Time elapsed: ", time() - start)
+
+    print(dg.w)
+    print(dg.D)
+    print(dg.x)
+    print(dg.L)
+    print(dg.normal)
+
+    exit(0)
 
     def f(u):
         return u ** 2 / 2
-
-
-    def u0(x):
-        return np.exp(-10 * x ** 2)
-
-    # Perform forward euler starting at u0 and plot the solution as a gif
-    import matplotlib.pyplot as plt
-    from matplotlib.animation import FuncAnimation
-
-    fig, ax = plt.subplots()
-    ax.set_xlim(-1, 1)
-    ax.set_ylim(-0.5, 1.5)
-    line = ax.plot(dg.x.T.flatten(), u0(dg.x).T.flatten())
-    line = line[0]
-
-    u = u0(dg.x)
-    t = 0
-
-    def update(frame):
-        global u
-        global t
-        u = u + 0.0015625 * dg.RHS(f, u)
-        line.set_ydata(u.T.flatten())
-        t += 1
-        print(t, np.linalg.norm(u))
-
-        return line,
     
-    ani = FuncAnimation(fig, update, frames=1000, repeat=True)
-    plt.show()
+    print(dg.x.shape)
+    
+    u = dg.x
+
+    start2 = time()
+    result = dg.RHS(f, u)
+
+    print("Time elapsed: ", time() - start2)
+
+    # print(result)
