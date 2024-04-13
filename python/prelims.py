@@ -112,20 +112,10 @@ if __name__ == "__main__":
     start = time()
     dg = DGPrelims(4, 16384, is_periodic=True)
 
-    print("Time elapsed: ", time() - start)
-
-    print(dg.w)
-    print(dg.D)
-    print(dg.x)
-    print(dg.L)
-    print(dg.normal)
-
-    exit(0)
+    print("Time to compute DG Preliminaries: ", time() - start)
 
     def f(u):
         return u ** 2 / 2
-    
-    print(dg.x.shape)
     
     u = dg.x
 

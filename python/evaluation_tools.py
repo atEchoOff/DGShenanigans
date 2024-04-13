@@ -52,9 +52,6 @@ def proper_order(x, y, verbose=False):
     # Return:
     #   float: The order of convergence
 
-    print(x)
-    print(y)
-
     if verbose:
         print(f"Our errors were {y}")
 
@@ -73,6 +70,6 @@ def proper_order_func(xfunc, yfunc, Ns, verbose=False):
 
     # First, apply yFunc to our input values
     y = np.array([yfunc(N) for N in Ns])
-
+    
     # Finally, determine the convergence
     return proper_order(np.vectorize(xfunc)(Ns), y, verbose)
